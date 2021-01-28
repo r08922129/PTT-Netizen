@@ -37,6 +37,6 @@ class QABot(object):
         new_vec_tfidf = self.tfidf[new_vec]
         sims = np.array(self.index[new_vec_tfidf])
 
-        answer = self.answers[sims.argmax()][1]
+        answer = self.answers[sims.argmax()]
         return answer
 
