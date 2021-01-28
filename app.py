@@ -15,7 +15,7 @@
 import os
 import sys
 from argparse import ArgumentParser
-
+import asyncio
 from flask import Flask, request, abort
 from linebot import (
     LineBotApi, WebhookHandler
@@ -26,9 +26,17 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
-from src.QABot import *
+from src.QABot import QABot
+from src.pttHot import updateHotList
 
+# build Question Answering Bot
 qabot = QABot("/app/corpus")
+
+# Set crawler to get hot list from ptt
+hot_list = []
+loop = asyncio.get_event_loop()
+loop.run_forever(updateHotList(hot_list))
+
 app = Flask(__name__)
 
 # get channel_secret and channel_access_token from your environment variable
@@ -69,6 +77,7 @@ def handle_text_message(event):
         event.reply_token,
         TextSendMessage(text=qabot.reply(event.message.text))
     )
+    print("HOT_LIST",hot_list)
 
 
 if __name__ == "__main__":
