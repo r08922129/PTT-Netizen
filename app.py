@@ -26,6 +26,16 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
+from src.QABot import *
+
+arg_parser = ArgumentParser(
+    usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
+)
+arg_parser.add_argument('corpus', default='corpus')
+arg_parser.add_argument('-p', '--port', default=8000, help='port')
+arg_parser.add_argument('-d', '--debug', default=False, help='debug')
+options = arg_parser.parse_args()
+qabot = QABot(options.corpus)
 
 app = Flask(__name__)
 
@@ -65,16 +75,9 @@ def callback():
 def handle_text_message(event):
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text="https://pttgopolitics.com/gossiping/M.1611728002.A.403.html")
+        TextSendMessage(text=qabot.reply(event.message.text))
     )
 
 
 if __name__ == "__main__":
-    arg_parser = ArgumentParser(
-        usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
-    )
-    arg_parser.add_argument('-p', '--port', default=8000, help='port')
-    arg_parser.add_argument('-d', '--debug', default=False, help='debug')
-    options = arg_parser.parse_args()
-
     app.run(debug=options.debug, port=options.port)
