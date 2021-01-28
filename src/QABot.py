@@ -15,18 +15,19 @@ import os
 
 class QABot(object):
     def __init__(self, corpus_path):
-        with open(os.path.join(corpus_path, 'answers.pkl'), "rb") as f1,              open(os.path.join(corpus_path, 'corpus.pkl'), "rb") as f2,              open(os.path.join(corpus_path, 'dictionary.pkl'), "rb") as f3,              open(os.path.join(corpus_path, 'stopwords.txt')) as f4:
-
-            self.answers = pickle.load(f1)
-            self.corpus = pickle.load(f2)
-            self.dictionary = pickle.load(f3)
-            self.stopwords = set()
-            for line in f4:
+        with open(os.path.join(corpus_path, 'answers.pkl'), "rb") as f:
+            self.answers = pickle.load(f)
+        with open(os.path.join(corpus_path, 'corpus.pkl'), "rb") as f:
+            self.corpus = pickle.load(f)
+        with open(os.path.join(corpus_path, 'dictionary.pkl'), "rb") as f:
+            self.dictionary = pickle.load(f)
+        self.stopwords = set()
+        with open(os.path.join(corpus_path, 'stopwords.txt'), "rb") as f:
+            for line in f:
                 self.stopwords.add(line.strip())
-            self.tfidf = models.TfidfModel(self.corpus)
-            self.corpus_tfidf = self.tfidf[self.corpus]
-            self.index = similarities.MatrixSimilarity(self.corpus_tfidf)
-
+        self.tfidf = models.TfidfModel(self.corpus)
+        self.corpus_tfidf = self.tfidf[self.corpus]
+        self.index = similarities.MatrixSimilarity(self.corpus_tfidf)
 
     def reply(self, query):
 
