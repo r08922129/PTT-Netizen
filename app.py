@@ -15,7 +15,6 @@
 import os
 import sys
 from argparse import ArgumentParser
-import asyncio
 from flask import Flask, request, abort
 from linebot import (
     LineBotApi, WebhookHandler
@@ -24,17 +23,19 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, TextMessage, TextSendMessage, PostbackEvent
 )
 from src.QABot import QABot
-from src.pttHot import updateHotList
+from src.pttHot import updateHotList, hot_list
+from src.flexMessage import flex_message
 import threading
 import time
+import random
+
 # build Question Answering Bot
 qabot = QABot("/app/corpus")
 
 # Set crawler to get hot list from ptt
-hot_list = []
 t = threading.Thread(target = updateHotList)
 t.start()
 
@@ -74,12 +75,26 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=qabot.reply(event.message.text))
-    )
+    if event.message.text == "test":
+        line_bot_api.reply_message(
+            event.reply_token,
+            flex_message
+        )
+    else:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=qabot.reply(event.message.text))
+        )
     print("HOT_LIST",hot_list)
 
+@handler.add(PostbackEvent)
+def handle_text_message(event):
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=random.choice(hot_list))
+    )
+    print("HOT_LIST",hot_list)
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
