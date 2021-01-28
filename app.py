@@ -28,13 +28,15 @@ from linebot.models import (
 )
 from src.QABot import QABot
 from src.pttHot import updateHotList
-
+import threading
+import time
 # build Question Answering Bot
 qabot = QABot("/app/corpus")
 
 # Set crawler to get hot list from ptt
 hot_list = []
-asyncio.run(updateHotList(hot_list))
+t = threading.Thread(target = updateHotList)
+t.start()
 
 app = Flask(__name__)
 
