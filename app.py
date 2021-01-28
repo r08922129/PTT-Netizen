@@ -34,8 +34,7 @@ qabot = QABot("/app/corpus")
 
 # Set crawler to get hot list from ptt
 hot_list = []
-loop = asyncio.get_event_loop()
-loop.run_forever(updateHotList(hot_list))
+asyncio.run(updateHotList(hot_list))
 
 app = Flask(__name__)
 
