@@ -31,11 +31,10 @@ from src.QABot import *
 arg_parser = ArgumentParser(
     usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
 )
-arg_parser.add_argument('corpus', default='corpus')
 arg_parser.add_argument('-p', '--port', default=8000, help='port')
 arg_parser.add_argument('-d', '--debug', default=False, help='debug')
 options = arg_parser.parse_args()
-qabot = QABot(options.corpus)
+qabot = QABot("/app/corpus")
 
 app = Flask(__name__)
 
