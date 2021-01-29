@@ -33,7 +33,6 @@ flex_message = FlexSendMessage(
                       "type": "postback",
                       "label": "PTT 熱門",
                       "data":"hot",
-                      "displayText": "https://linecorp.com"
                     }
                   },
                   {
@@ -49,9 +48,9 @@ flex_message = FlexSendMessage(
                   {
                     "type": "button",
                     "action": {
-                      "type": "uri",
-                      "label": "通行一下",
-                      "uri": "http://linecorp.com/"
+                      "type": "postback",
+                      "label": "計畫通行",
+                      "data":"doori",
                     }
                   }
                 ],

@@ -2,6 +2,7 @@ __pycache__/
 .ipynb_checkpoints
 Untitled.ipynb
 src/.ipynb_checkpoints
-src/pttHot.ipynb
 src/__pycache__
-src/flexMessage.ipynb
+src/toori_html
+src/acl_html
+src/*.ipynb

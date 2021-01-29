@@ -38,6 +38,9 @@ qabot = QABot("/app/corpus")
 # Set crawler to get hot list from ptt
 t = threading.Thread(target = updateHotList)
 t.start()
+# Get doori urls
+with open('/app/links/doori') as f:
+    doori_links = [line.strip() for line in f.readlines()]
 
 app = Flask(__name__)
 
@@ -89,12 +92,17 @@ def handle_text_message(event):
 
 @handler.add(PostbackEvent)
 def handle_text_message(event):
+    if event.postback.data == "hot":
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=random.choice(hot_list))
+        )
+    elif event.postback.data == "doori":
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=random.choice(doori_links))
+        )
 
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=random.choice(hot_list))
-    )
-    print("HOT_LIST",hot_list)
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
