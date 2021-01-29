@@ -5,7 +5,8 @@
 
 
 from linebot.models import FlexSendMessage
-flex_message = FlexSendMessage(
+
+menu = FlexSendMessage(
     alt_text='hello',
     contents={
               "type": "bubble",
@@ -40,9 +41,9 @@ flex_message = FlexSendMessage(
                     "style": "link",
                     "height": "sm",
                     "action": {
-                      "type": "uri",
+                      "type": "postback",
                       "label": "A paper a day",
-                      "uri": "https://linecorp.com"
+                      "data":"paper",
                     }
                   },
                   {
