@@ -85,10 +85,18 @@ def handle_text_message(event):
             event.reply_token,
             menu
         )
-    else:
+    elif event.message.text == "talk":
+        qabot.talking = True
+        print("Talking mode")
+    elif event.message.text == "shut up":
+        qabot.talking = False
+        print("Silence mode")
+    elif qabot.talking:
+        msg = qabot.reply(event.message.text)
+        print(msg)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=qabot.reply(event.message.text))
+            TextSendMessage(text=msg)
         )
 
 @handler.add(PostbackEvent)

@@ -7,7 +7,6 @@
 import requests
 from bs4 import BeautifulSoup
 import os
-import threading
 import time
 
 
