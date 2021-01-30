@@ -6,3 +6,8 @@ jieba
 numpy
 beautifulsoup4
 requests
+psycopg2
+Flask-SQLAlchemy
+Flask-Migrate
+click
+googlemaps

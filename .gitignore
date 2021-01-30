@@ -6,3 +6,7 @@ src/__pycache__
 src/toori_html
 src/acl_html
 src/*.ipynb
+.env
+templates
+logfile
+chatbot
