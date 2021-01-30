@@ -23,11 +23,12 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, PostbackEvent
+    MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, PostbackEvent,
+    LocationMessage, 
 )
 from src.QABot import QABot
 from src.pttHot import updateHotList, hot_list
-from src.menu import menu
+from src.reply import *
 import threading
 import time
 import random
@@ -88,53 +89,41 @@ def handle_text_message(event):
     elif event.message.text == "talk":
         qabot.talking = True
         print("Talking mode")
+        print(threading.get_ident())
     elif event.message.text == "shut up":
         qabot.talking = False
         print("Silence mode")
+        print(threading.get_ident())
     elif qabot.talking:
         msg = qabot.reply(event.message.text)
         print(msg)
+        print(threading.get_ident())
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=msg)
         )
+    else:
+        print("QA BOT MODE", qabot.talking)
+        print(threading.get_ident())
 
 @handler.add(PostbackEvent)
-def handle_text_message(event):
+def handle_postbacl_message(event):
     if event.postback.data == "hot":
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=random.choice(hot_list))
         )
+    elif event.postback.data == "eat":
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(
+                text="選擇種類",
+                quick_reply = asking_food
+            )
+        )
     elif event.postback.data == "paper":
         paper = random.choice(list(papers.keys()))
-        flex_message = FlexSendMessage(
-            alt_text='hello',
-            contents={
-                "type": "bubble",
-                "body": {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [
-                    {
-                        "type": "text",
-                        "text": paper,
-                        "size": "md",
-                        "style": "italic",
-                        "wrap": True,
-                        "weight": "bold",
-                        "action": {
-                        "type": "uri",
-                        "label": "action",
-                        "uri": papers[paper]
-                        }
-                    }
-                    ],
-                    "spacing": "none",
-                    "margin": "xs"
-                }
-            }
-        )
+        flex_message = get_paper_reply(paper, papers[paper])
         line_bot_api.reply_message(
             event.reply_token,
             flex_message
@@ -145,6 +134,10 @@ def handle_text_message(event):
             TextSendMessage(text=random.choice(doori_links))
         )
 
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location_message(event):
+    # use google location api to find restaurant
+    print("location:", event.message.address, event.message.latitude, event.message.longitude)
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
