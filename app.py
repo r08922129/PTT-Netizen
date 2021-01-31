@@ -25,7 +25,7 @@ from linebot.exceptions import (
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, PostbackEvent,
-    LocationMessage, LocationSendMessage
+    LocationMessage, LocationSendMessage, FollowEvent, JoinEvent,
 )
 from src.QABot import QABot
 from src.ptthot import update_hot_list, hot_list
@@ -96,7 +96,20 @@ def callback():
 
     return 'OK'
 
-
+@handler.add(FollowEvent)
+def handle_follow(event):
+    description = "指令:\n1. menu : 開啟選單\n2. talk : 進入對話模式\n3. shut up : 關閉對話模式"
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=description)
+    )
+@handler.add(JoinEvent)
+def guideline(event):
+    description = "指令:\n1. menu : 開啟選單\n2. talk : 進入對話模式\n3. shut up : 關閉對話模式"
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=description)
+    )
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
 

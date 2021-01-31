@@ -75,8 +75,6 @@ def find_food(query, latitude, longitude, app):
     restaurants = gmaps.places(query, (latitude, longitude),
                                 type='restaurant', radius=1000,
                                 language='zh-tw')
-    with open('/app/restaurants.json') as f:
-        restaurants = json.load(f)
     t = threading.Thread(target = store_food, args=(restaurants, app))
     t.start()
     if len(restaurants['results']):
