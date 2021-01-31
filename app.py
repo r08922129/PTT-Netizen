@@ -16,6 +16,7 @@ import os
 import sys
 from argparse import ArgumentParser
 from flask import Flask, request, abort, render_template, jsonify
+from flask_migrate import Migrate
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -24,34 +25,38 @@ from linebot.exceptions import (
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage, FlexSendMessage, PostbackEvent,
-    LocationMessage, 
+    LocationMessage, LocationSendMessage
 )
 from src.QABot import QABot
-from src.pttHot import updateHotList, hot_list
+from src.ptthot import update_hot_list, hot_list
 from src.reply import *
+import src.findfood as findfood
 import threading
 import time
 import random
 import json
 import googlemaps
 import database
-from models import Type, District, Road, Section, Restaurant, db
 import commands
+from models import *
+import mmap
 
 ROOT = os.path.join(os.path.dirname(__file__))
 # setup config
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
-
+migrate = Migrate(app, db)
 # setup database
 database.init_app(app)
 # set commands
 commands.init_app(app)
-# build object for google map
-gmaps = googlemaps.Client(key='')
-
 # build Question Answering Bot
 qabot = QABot(os.path.join(ROOT, 'corpus'))
+# build mmap to access chatbot status
+with open("bot_status", "wb") as f:
+    f.write(b"\0")
+with open("bot_status", "r+b") as f:
+    BOT_STATUS = mmap.mmap(f.fileno(), 0)
 
 # Get doori urls
 with open(os.path.join(ROOT, 'links/doori')) as f:
@@ -74,22 +79,6 @@ if channel_access_token is None:
 line_bot_api = LineBotApi(channel_access_token)
 handler = WebhookHandler(channel_secret)
 
-@app.route("/")
-def main_page():
-    items = Road.query.all()
-    return render_template('index.html', items=items)
-
-@app.route("/road")
-def add_road():
-    road = Road(road="忠孝")
-    # add to the database session
-    database.db.session.add(road)
-        
-    # commit to persist into the database
-    database.db.session.commit()
-    
-    return jsonify({"sucess": road.road})
-
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -110,33 +99,35 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
+
     if event.message.text == "menu":
         line_bot_api.reply_message(
             event.reply_token,
             menu
         )
     elif event.message.text == "talk":
-        qabot.talking = True
-        print("Talking mode")
-        print(threading.get_ident())
-    elif event.message.text == "shut up":
-        qabot.talking = False
-        print("Silence mode")
-        print(threading.get_ident())
-    elif qabot.talking:
-        msg = qabot.reply(event.message.text)
-        print(msg)
-        print(threading.get_ident())
+        BOT_STATUS[0] = 1
+        BOT_STATUS.flush()
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=msg)
+            TextSendMessage(text="安安你好")
         )
-    else:
-        print("QA BOT MODE", qabot.talking)
-        print(threading.get_ident())
+    elif event.message.text == "shut up":
+        BOT_STATUS[0] = 0
+        BOT_STATUS.flush()
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="抱歉")
+        )
+    elif int.from_bytes(BOT_STATUS, byteorder='big'):
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=qabot.reply(event.message.text))
+        )
 
 @handler.add(PostbackEvent)
 def handle_postbacl_message(event):
+
     if event.postback.data == "hot":
         line_bot_api.reply_message(
             event.reply_token,
@@ -146,16 +137,15 @@ def handle_postbacl_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(
-                text="選擇種類",
+                text="現在的位置??",
                 quick_reply = asking_food
             )
         )
     elif event.postback.data == "paper":
         paper = random.choice(list(papers.keys()))
-        flex_message = get_paper_reply(paper, papers[paper])
         line_bot_api.reply_message(
             event.reply_token,
-            flex_message
+            get_paper_reply(paper, papers[paper]),
         )
     elif event.postback.data == "doori":
         line_bot_api.reply_message(
@@ -166,9 +156,14 @@ def handle_postbacl_message(event):
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
     # use google location api to find restaurant
-    # restaurants = gmaps.places('餐廳', event.message.address, type='restaurant')
-
-    print("location:", event.message.address, event.message.latitude, event.message.longitude)
+    restaurant = findfood.find_food('餐廳', event.message.latitude, event.message.longitude, app)
+    line_bot_api.reply_message(
+            event.reply_token,
+            LocationSendMessage(
+                title=restaurant['name'], address=restaurant['place'],
+                latitude=restaurant['latitude'], longitude=restaurant['longitude']
+          )
+        )
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
@@ -179,6 +174,6 @@ if __name__ == "__main__":
     options = arg_parser.parse_args()
 
     # Set crawler to get hot list from ptt
-    t = threading.Thread(target = updateHotList)
+    t = threading.Thread(target = update_hot_list)
     t.start()
     app.run(threaded=True, debug=options.debug, port=options.port)

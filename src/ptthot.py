@@ -13,7 +13,7 @@ import time
 # In[66]:
 
 hot_list = []
-def updateHotList():
+def update_hot_list():
     while True:
         hot_list.clear()
         hot_base = "https://disp.cc/m/"

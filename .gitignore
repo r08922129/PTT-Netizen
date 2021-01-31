@@ -10,3 +10,4 @@ src/*.ipynb
 templates
 logfile
 chatbot
+local_database.db

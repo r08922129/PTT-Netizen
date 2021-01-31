@@ -6,7 +6,7 @@
 
 from linebot.models import (
   FlexSendMessage, QuickReply, QuickReplyButton, PostbackAction, MessageAction,
-  LocationAction,
+  LocationAction, LocationSendMessage
 )
 menu = FlexSendMessage(
           alt_text='hello',

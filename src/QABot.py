@@ -28,7 +28,7 @@ class QABot(object):
         self.tfidf = models.TfidfModel(self.corpus)
         self.corpus_tfidf = self.tfidf[self.corpus]
         self.index = similarities.MatrixSimilarity(self.corpus_tfidf)
-        self.talking = False
+
     def reply(self, query):
 
         words = ' '.join(jieba.cut(query)).split(' ')
