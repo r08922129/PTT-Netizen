@@ -12,7 +12,6 @@ import time
 
 # In[66]:
 
-hot_list = []
 def update_hot_list():
     while True:
         hot_list.clear()

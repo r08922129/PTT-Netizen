@@ -28,7 +28,6 @@ from linebot.models import (
     LocationMessage, LocationSendMessage, FollowEvent, JoinEvent,
 )
 from src.QABot import QABot
-from src.ptthot import update_hot_list, hot_list
 from src.reply import *
 import src.findfood as findfood
 import threading
@@ -40,6 +39,7 @@ import database
 import commands
 from models import *
 import mmap
+import redis
 
 ROOT = os.path.join(os.path.dirname(__file__))
 # setup config
@@ -65,6 +65,8 @@ with open(os.path.join(ROOT, 'links/doori')) as f:
 with open(os.path.join(ROOT, 'links/acl.json')) as f:
     papers = json.load(f)
 
+r = redis.from_url(os.environ.get("REDIS_URL"))
+r.lpush("hot list", "Hot List is Empty...")
 # get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
@@ -142,9 +144,12 @@ def handle_text_message(event):
 def handle_postbacl_message(event):
 
     if event.postback.data == "hot":
+        index = random.randint(0, r.llen("hot list")-1)
+        url = r.lindex("hot list", index).decode('utf-8')
+
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=random.choice(hot_list))
+            TextSendMessage(text=url)
         )
     elif event.postback.data == "eat":
         line_bot_api.reply_message(
